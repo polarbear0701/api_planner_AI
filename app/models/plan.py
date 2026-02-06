@@ -6,7 +6,7 @@ from app.database import Base
 
 
 class Plan(Base):
-	__table__name = "plans"
+	__tablename__ = "plans"
 	
 	id = Column(Integer, primary_key=True, index=True)
 	title = Column(String(255), nullable=False, index=True)
