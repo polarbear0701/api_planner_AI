@@ -2,7 +2,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.models.plan import Plan
+from app.models.task import Task
 from app.schemas.plan import PlanCreate, PlanUpdate
+from app.schemas.task import TaskCreate, TaskUpdate
 
 
 class PlanService:
@@ -58,3 +60,68 @@ class PlanService:
 			db.rollback()
 			raise Exception(f"Failed to delete plan: {str(e)}")
 		 
+class TaskService:
+	@staticmethod
+	def get_task(db: Session, task_id: int) -> Task:
+		return db.query(Task).filter(Task.id == task_id).first()
+	
+	@staticmethod
+	def get_tasks_by_plan(db: Session, plan_id: int, skip: int = 0, limit: int = 10) -> list[Task]:
+		return db.query(Task).filter(Task.plan_id == plan_id).offset(skip).limit(limit).all()
+	
+	@staticmethod
+	def create_task(db: Session, plan_id: int, task: TaskCreate) -> Task:
+		db_task = Task(
+			plan_id = plan_id,
+			title = task.title,
+			description = task.description,
+			status = task.status,
+			priority = task.priority,
+			due_date = task.due_date
+		)
+		
+		try:
+			db.add(db_task)
+			db.commit()
+			db.refresh(db_task)
+			return db_task
+		except SQLAlchemyError as e:
+			db.rollback()
+			raise Exception(f"Failed to create task: {str(e)}")
+	
+	@staticmethod
+	def update_task(db: Session, task_id: int, task_update: TaskUpdate) -> Task | None:
+		db_task = db.query(Task).filter(Task.id == task_id).first()
+		if not db_task:
+			return None
+		try:
+			if task_update.title is not None:
+				db_task.title = task_update.title  # type: ignore
+			if task_update.description is not None:
+				db_task.description = task_update.description  # type: ignore
+			if task_update.status is not None:
+				db_task.status = task_update.status  # type: ignore
+			if task_update.priority is not None:
+				db_task.priority = task_update.priority  # type: ignore
+			if task_update.due_date is not None:
+				db_task.due_date = task_update.due_date  # type: ignore
+
+			db.commit()
+			db.refresh(db_task)
+			return db_task
+		except SQLAlchemyError as e:
+			db.rollback()
+			raise Exception(f"Failed to update task: {str(e)}")
+			
+	@staticmethod
+	def delete_task(db: Session, task_id: int) -> bool:
+		db_task = db.query(Task).filter(Task.id == task_id).first()
+		if not db_task:
+			return False
+		try:
+			db.delete(db_task)
+			db.commit()
+			return True
+		except SQLAlchemyError as e:
+			db.rollback()
+			raise Exception(f"Failed to delete task: {str(e)}")
