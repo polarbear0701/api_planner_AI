@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import SessionLocal, init_db
 from sqlalchemy import text
-
+from app.api.routes import plans
 
 app = FastAPI(
 	title="AI Planner API",
@@ -18,6 +18,8 @@ app.add_middleware(
 	allow_methods=["*"],
 	allow_headers=["*"]
 )
+
+app.include_router(plans.router)
 
 @app.on_event("startup")
 async def startup_event():

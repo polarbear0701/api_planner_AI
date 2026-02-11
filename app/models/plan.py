@@ -12,7 +12,7 @@ class Plan(Base):
 	title = Column(String(255), nullable=False, index=True)
 	description = Column(Text)
 	created_at = Column(DateTime, default=datetime.now)
-	update_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+	updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 	is_completed = Column(Boolean, default=False)
 	
 	tasks = relationship("Task", back_populates="plan", cascade="all, delete-orphan")
